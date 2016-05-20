@@ -47,6 +47,10 @@ public class Complex {
         return p.findZeroWithGuess(this);
     }
 
+    public Complex iterateForFractal(Polynomial p){
+        return p.fractalEsc(this);
+    }
+
     public Complex add(Complex c)
     {
         double real = this.real + c.real;

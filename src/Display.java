@@ -79,11 +79,9 @@ public class Display extends JFrame implements MouseListener {
                 new Complex(1, 0),
                 new Complex(0, 0),
                 new Complex(0, 0),
-                new Complex(0, 0),
-                new Complex(0, 0),
                 new Complex(1, 0)
         };
-        p = new Polynomial(5, co);
+        p = new Polynomial(co.length-1, co);
         roots = new ArrayList<Complex>(p.order+1);
 
         //generates roots
@@ -139,10 +137,11 @@ public class Display extends JFrame implements MouseListener {
         }
         System.out.println("Roots: " + roots);
             for (int i = 0; i < width; i += PIXEL_SIZE) {
+                System.out.println(i);
                 for (int j = 0; j < height; j += PIXEL_SIZE) {
 
                     Complex c = window.complexForPoint(i, j);
-                    Complex root = c.iterateForPolynomial(p);
+                    Complex root = c.iterateForFractal(p);
                     Complex actualRoot = containsOrIsCloseTo(root);
                     if (root == null || roots.indexOf(actualRoot) == -1) g.setColor(Color.black);
                     else {
@@ -221,7 +220,6 @@ public class Display extends JFrame implements MouseListener {
 
             minY = c.imaginary - height;
             maxY = c.imaginary + height;
-            System.out.println("About to repaint lol");
             repaint();
         }
     }
