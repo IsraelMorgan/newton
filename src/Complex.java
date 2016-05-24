@@ -6,16 +6,19 @@ import java.awt.*;
 
 
 public class Complex {
-    double real, imaginary;
+    double real, imaginary, c, magnitude;
 
     public Complex(double real, double imaginary) {
+        c=0;
         this.real = real;
         this.imaginary = imaginary;
+        this.magnitude = magnitude();
     }
 
     public Complex() {
         this.real = 0;
         this.imaginary = 0;
+        this.magnitude = magnitude();
     }
 
     public Complex multiply(Complex other)
@@ -31,6 +34,11 @@ public class Complex {
         return new Complex(retReal,retImaginary);
     }
 
+    public Complex iterateForFractal(Polynomial p){
+        return p.fractalEsc(this);
+    }
+
+    public Complex iterateForFractalRat(Rational r) { return r.fractalEsc(this);}
     public Complex pow(int pow) {
         if (pow == 0) return new Complex(1, 0);
         Complex c = this;
@@ -43,13 +51,16 @@ public class Complex {
         return other;
     }
 
+    public Complex iterateForPolynomial(Polynomial p, Polynomial derivative){
+        return p.findZeroWithGuess(this, derivative);
+    }
+
     public Complex iterateForPolynomial(Polynomial p){
         return p.findZeroWithGuess(this);
     }
 
-    public Complex iterateForFractal(Polynomial p){
-        return p.fractalEsc(this);
-    }
+    public Complex iterateForRational(Rational r){ return r.findZeroWithGuess(this);}
+
 
     public Complex add(Complex c)
     {

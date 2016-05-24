@@ -13,7 +13,9 @@ public class Display extends JFrame implements MouseListener {
     double scaleFactor = 10;
     ArrayList<Complex> roots;
     Polynomial p;
+    Rational r;
     boolean hasInit;
+    boolean isRational = false;
 
     static  Color[] color_lookup = new Color[16];
 
@@ -23,11 +25,6 @@ public class Display extends JFrame implements MouseListener {
         color_lookup[2] = new Color(57, 125, 209);
         color_lookup[3] = new Color(0, 0, 200);
         color_lookup[4] = new Color(0, 0, 100);
-        /*color_lookup[0] = new Color(25, 7, 26);
-        color_lookup[1] = new Color(25, 7, 26);
-        color_lookup[2] = new Color(9, 1, 47);
-        color_lookup[3] = new Color(4, 4, 73);
-        color_lookup[4] = new Color(0, 7, 100);
         color_lookup[5] = new Color(12, 44, 138);
         color_lookup[6] = new Color(24, 82, 177);
         color_lookup[7] = new Color(57, 125, 209);
@@ -38,12 +35,55 @@ public class Display extends JFrame implements MouseListener {
         color_lookup[12] = new Color(255, 170, 0);
         color_lookup[13] = new Color(204, 128, 0);
         color_lookup[14] = new Color(153, 87, 0);
-        color_lookup[15] = new Color(106, 52, 3);*/
+        color_lookup[15] = new Color(106, 52, 3);
     }
 
-    private Color getColorForRoot(int root)
+    private Color getColorForRoot(Complex z)
     {
-        return color_lookup[root % 16];
+        double n = z.c;
+        double smooth = n + 1 - Math.log(Math.log(z.magnitude())) / Math.log(2.0);
+
+        return new Color(Color.HSBtoRGB(0.95f + (float)(10 * smooth), 0.6f, 1.0f));
+    }
+
+    private Color getColorForRot(int esc, int root)
+    {
+        Color c = color_lookup[root%16];
+        System.out.println(esc);
+        return new Color((int)(c.getRed()*esc/100.0), (int)(c.getGreen()*esc/100.0), (int) (c.getBlue()*esc/100.0));
+    }
+
+    private Color getColorForot(int esc, int root)
+    {
+        Color c = color_lookup[root%16];
+        int[] rootColor = {c.getRed(), c.getGreen(), c.getBlue()};
+        int[] components = {0,0,0};
+
+        //components[root%3] = (int) (rootColor[i] / (1 + Math.exp(- (esc+100)/100)))
+        for (int i = 0; i<3; i++) {
+            components[i] = (int) (rootColor[i] / (1 + Math.exp(- (esc+100)/100)));
+            System.out.print(components[i] + " ");
+        }
+        System.out.println("");
+        return new Color(components[0], components[1], components[2]);
+    }
+
+    private Color getColorForRoot(int esc, int root) //newton's method iterations for root, root index
+    {
+        return shadeColor(color_lookup[root % 16], esc);
+    }
+
+    private Color shadeColor(Color c, int esc) {
+        //based off users/992484/madprogrammer
+
+        int shadeMax = 200; // max newton's method iterations
+        int shaderValue = (int) 255.0*(esc*5)/shadeMax;
+
+        int r = Math.max(0, c.getRed() - shaderValue);
+        int g = Math.max(0, c.getGreen() - shaderValue);
+        int b = Math.max(0, c.getBlue() - shaderValue);
+
+        return new Color(r,g,b,c.getAlpha());
     }
 
     public Display () {
@@ -64,7 +104,7 @@ public class Display extends JFrame implements MouseListener {
         this.window = new Window();
         window.standardZoom();
 
-        initRoots();
+        initRootsRat();
 
         addMouseListener(this);
         this.addKeyListener(k);
@@ -75,18 +115,19 @@ public class Display extends JFrame implements MouseListener {
     }
 
     public void initRoots() {
-        Complex[] co = {
+        Complex[] co1 = {
                 new Complex(1, 0),
                 new Complex(0, 0),
                 new Complex(0, 0),
                 new Complex(1, 0)
         };
-        p = new Polynomial(co.length-1, co);
+
+        p = new Polynomial(co1.length-1, co1);
+
         roots = new ArrayList<Complex>(p.order+1);
 
         //generates roots
         for (int i = 0; i < width; i += PIXEL_SIZE) {
-            System.out.println(i);
                 for (int j = 0; j < height; j += PIXEL_SIZE) {
                     Complex c = window.complexForPoint(i, j);
                     Complex root = c.iterateForPolynomial(p);
@@ -97,6 +138,45 @@ public class Display extends JFrame implements MouseListener {
                 }
             }
         System.out.println("Did Init");
+    }
+
+    public void initRootsRat(){
+        Complex[] co1 = {
+                new Complex(1, 0),
+                new Complex(0, 0),
+                new Complex(0, 0),
+                new Complex(0, 0),
+                new Complex(0, 0),
+                new Complex(1, 0)
+        };
+
+        Complex[] co2 = {
+                new Complex(1,0),
+                new Complex(0, 0),
+                new Complex(0, 0),
+                new Complex(1, 0)
+        };
+
+        Polynomial p1 = new Polynomial(co1.length-1, co1);
+        Polynomial p2 = new Polynomial(co2.length-1, co2);
+
+        r = new Rational(p1, p2);
+
+        roots = new ArrayList<Complex>(p1.order-p2.order);
+        isRational = true;
+        //generates roots
+        for (int i = 0; i < width; i += PIXEL_SIZE) {
+            for (int j = 0; j < height; j += PIXEL_SIZE) {
+                Complex c = window.complexForPoint(i, j);
+                Complex root = c.iterateForRational(r);
+                if (root != null) {
+                    Complex actualRoot = containsOrIsCloseTo(root);
+                    if (!roots.contains(actualRoot)) roots.add(actualRoot);
+                }
+            }
+        }
+        System.out.println("Did Init");
+
     }
 
     public KeyListener k = new KeyListener() {
@@ -141,11 +221,17 @@ public class Display extends JFrame implements MouseListener {
                 for (int j = 0; j < height; j += PIXEL_SIZE) {
 
                     Complex c = window.complexForPoint(i, j);
-                    Complex root = c.iterateForFractal(p);
+
+                    Complex root;
+                    if (isRational){
+                        root = c.iterateForFractalRat(r);
+                    }else{
+                        root = c.iterateForFractal(p);
+                    }
                     Complex actualRoot = containsOrIsCloseTo(root);
                     if (root == null || roots.indexOf(actualRoot) == -1) g.setColor(Color.black);
                     else {
-                        g.setColor(getColorForRoot(roots.indexOf(actualRoot)));
+                        g.setColor(getColorForRoot((int) root.c, roots.indexOf(actualRoot)));
                         g.fillRect(i, j,PIXEL_SIZE,PIXEL_SIZE);
                     }
                 }

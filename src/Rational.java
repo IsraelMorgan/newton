@@ -48,4 +48,56 @@ public class Rational {
 
         return "P(x): " + (this.p) + "\n" + "Q(x): " + (this.q);
     }
+
+    public Complex findZeroWithGuess(Complex test) {
+        Complex x = test;
+        double tolerance = .0000000001; // Stop if you're close enough
+        int max_count = 200; // Maximum number of Newton's method iterations
+
+         /* x is our current guess. If no command line guess is given,
+        we take 0 as our starting point. */
+        int count;
+        for(count=1;
+            //Carry on till we're close, or we've run it 200 times.
+            (this.evaluate(x).magnitude() > tolerance) && ( count < max_count);
+            count ++)  {
+
+            x = x.subtract(this.evaluate(x).divide(this.getDerivative().evaluate(x)));  //Newtons method.
+            // System.out.println("Step: "+count+" x:"+x+" Value:"+p.evaluate(x));
+        }
+        //OK, done let's report on the outcomes.
+        if(this.evaluate(x).magnitude() <= tolerance) {
+            x.c = count;
+            return x;
+        }
+        return null;
+
+    }
+
+    public Complex fractalEsc(Complex test) {
+        Complex x = test;
+        double tolerance = .0000000001; // Stop if you're close enough
+        int max_count = 200; // Maximum number of Newton's method iterations
+
+         /* x is our current guess. If no command line guess is given,
+        we take 0 as our starting point. */
+        int count;
+        for(count=1;
+            //Carry on till we're close, or we've run it 200 times.
+            (this.evaluate(x).magnitude() > tolerance) && ( count < max_count);
+            count ++)  {
+
+            Complex a = new Complex(1, 0);
+
+            x = x.subtract(a.multiply(this.evaluate(x).divide(this.getDerivative().evaluate(x))));  //Newtons method.
+            // System.out.println("Step: "+count+" x:"+x+" Value:"+p.evaluate(x));
+        }
+        //OK, done let's report on the outcomes.
+        if(this.evaluate(x).magnitude() <= tolerance) {
+            x.c = count;
+            return x;
+        }
+        return null;
+
+    }
 }

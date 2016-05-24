@@ -117,6 +117,10 @@ public class Polynomial {
     }
 
     public Complex findZeroWithGuess(Complex test) {
+        return findZeroWithGuess(test, this.getDerivative());
+    }
+
+    public Complex findZeroWithGuess(Complex test, Polynomial derivative) {
         Complex x = test;
         double tolerance = .0000000001; // Stop if you're close enough
         int max_count = 200; // Maximum number of Newton's method iterations
@@ -126,18 +130,18 @@ public class Polynomial {
         int count;
         for(count=1;
             //Carry on till we're close, or we've run it 200 times.
-            (this.evaluate(x).magnitude() > tolerance) && ( count < max_count);
+            (this.evaluate(x).magnitude > tolerance) && ( count < max_count);
             count ++)  {
 
-            x = x.subtract(this.evaluate(x).divide(this.getDerivative().evaluate(x)));  //Newtons method.
+            x = x.subtract(this.evaluate(x).divide(derivative.evaluate(x)));  //Newtons method.
             // System.out.println("Step: "+count+" x:"+x+" Value:"+p.evaluate(x));
         }
         //OK, done let's report on the outcomes.
-        if(this.evaluate(x).magnitude() <= tolerance) {
+        if(this.evaluate(x).magnitude <= tolerance) {
+            x.c = count;
             return x;
         }
         return null;
-
     }
 
     public Complex fractalEsc(Complex test) {
@@ -160,6 +164,7 @@ public class Polynomial {
         }
         //OK, done let's report on the outcomes.
         if(this.evaluate(x).magnitude() <= tolerance) {
+            x.c = count;
             return x;
         }
         return null;
