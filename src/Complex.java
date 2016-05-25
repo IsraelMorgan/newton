@@ -61,6 +61,7 @@ public class Complex {
 
     public Complex iterateForRational(Rational r){ return r.findZeroWithGuess(this);}
 
+    public Complex iterateForTrig(Trig t){ return t.findZeroWithGuess(this);}
 
     public Complex add(Complex c)
     {
@@ -82,6 +83,14 @@ public class Complex {
 
         this.real = real;
         this.imaginary = imaginary;
+
+        return this;
+    }
+
+    public Complex cos(){
+
+        this.real = Math.cos(this.real) * Math.cosh(this.imaginary);
+        this.imaginary = -Math.sin(this.real) * Math.sinh(this.imaginary);
 
         return this;
     }

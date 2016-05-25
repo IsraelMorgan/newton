@@ -14,8 +14,10 @@ public class Display extends JFrame implements MouseListener {
     ArrayList<Complex> roots;
     Polynomial p;
     Rational r;
+    Trig t;
     boolean hasInit;
     boolean isRational = false;
+    boolean isTrig = false;
 
     static  Color[] color_lookup = new Color[16];
 
@@ -104,7 +106,7 @@ public class Display extends JFrame implements MouseListener {
         this.window = new Window();
         window.standardZoom();
 
-        initRootsRat();
+        initRootsTrig();
 
         addMouseListener(this);
         this.addKeyListener(k);
@@ -179,6 +181,26 @@ public class Display extends JFrame implements MouseListener {
 
     }
 
+    public void initRootsTrig(){
+        Complex one = new Complex(1,0);
+        Complex num = new Complex(1,0);
+        t = new Trig(false, one, num);
+        roots = new ArrayList<Complex>(16);
+        isTrig = true;
+        //generates roots
+        for (int i = 0; i < width; i += PIXEL_SIZE) {
+            for (int j = 0; j < height; j += PIXEL_SIZE) {
+                Complex c = window.complexForPoint(i, j);
+                Complex root = c.iterateForTrig(t);
+                if (root != null) {
+                    Complex actualRoot = containsOrIsCloseTo(root);
+                    if (!roots.contains(actualRoot)) roots.add(actualRoot);
+                }
+            }
+        }
+        System.out.println("Did Init");
+    }
+
     public KeyListener k = new KeyListener() {
 
         @Override
@@ -225,9 +247,14 @@ public class Display extends JFrame implements MouseListener {
                     Complex root;
                     if (isRational){
                         root = c.iterateForFractalRat(r);
-                    }else{
-                        root = c.iterateForFractal(p);
                     }
+                    else if(isTrig) {
+                        root = c.iterateForTrig(t);
+                    }
+                    else{
+                            root = c.iterateForFractal(p);
+                    }
+
                     Complex actualRoot = containsOrIsCloseTo(root);
                     if (root == null || roots.indexOf(actualRoot) == -1) g.setColor(Color.black);
                     else {
